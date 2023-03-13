@@ -9,7 +9,7 @@ of initial tournament matchups. Examples of "teams" file can be found in the `br
 
 ### Create
 
-    python -m flatbracket brackets/2022/womens
+    $ python -m flatbracket brackets/2022/womens
     South Carolina vs. Howard
     [0/1]: 0
     ...
@@ -19,6 +19,18 @@ of initial tournament matchups. Examples of "teams" file can be found in the `br
     [0/1]: 0
 
     Bracket: QFYEEmTKoig
+
+Or use the `-r/--random` CLI flag for random picks (uses seeds for standard 64 team NCAA tournaments):
+
+    $ python -m flatbracket brackets/2023/mens --random
+    Alabama vs. A&M-CC/SE Missouri St.
+    0
+    ...
+    ...
+    Marquette vs. Houston
+    0
+
+    Bracket: FBCCQu7kSRI
 
 ### View
 
@@ -90,78 +102,6 @@ flowchart LR
     4-1[Villanova vs. Kansas] --> 2-0
     2-0[N. Carolina vs. Kansas] --> 1-0
     1-0[Kansas]
-```
-
-    $ python -m flatbracket brackets/2022/mens RANDOM
-    Bracket: RANDOM
-    UjdRGjmNETg
-
-```mermaid
-flowchart LR
-    64-0[Gonzaga vs. Georgia St.] --> 32-0
-    64-1[Boise St. vs. Memphis] --> 32-0
-    64-2[Connecticut vs. N. Mex St.] --> 32-1
-    64-3[Arkansas vs. Vermont] --> 32-1
-    64-4[Alabama vs. RUTG/ND] --> 32-2
-    64-5[Texas Tech vs. Montana St.] --> 32-2
-    64-6[MICHST vs. Davidson] --> 32-3
-    64-7[Duke vs. CSFULL] --> 32-3
-    64-8[Baylor vs. Norfolk St.] --> 32-4
-    64-9[N. Carolina vs. Marquette] --> 32-4
-    64-10[MARYCA vs. WYO/IND] --> 32-5
-    64-11[UCLA vs. Akron] --> 32-5
-    64-12[Texas vs. Va. Tech] --> 32-6
-    64-13[Purdue vs. Yale] --> 32-6
-    64-14[Murray St. vs. San Fran.] --> 32-7
-    64-15[Kentucky vs. St. Peter's] --> 32-7
-    64-16[Arizona vs. WRST/BRY] --> 32-8
-    64-17[Seton Hall vs. TCU] --> 32-8
-    64-18[Houston vs. UAB] --> 32-9
-    64-19[Illinois vs. Chattanooga] --> 32-9
-    64-20[Colo. St. vs. Michigan] --> 32-10
-    64-21[Tennessee vs. Longwood] --> 32-10
-    64-22[Ohio St. vs. Loyola Chicago] --> 32-11
-    64-23[Villanova vs. Delaware] --> 32-11
-    64-24[Kansas vs. TXSO/TXCC] --> 32-12
-    64-25[SDGST vs. Creighton] --> 32-12
-    64-26[Iowa vs. Richmond] --> 32-13
-    64-27[Providence vs. S. Dakota St.] --> 32-13
-    64-28[LSU vs. Iowa St.] --> 32-14
-    64-29[Wisconsin vs. Colgate] --> 32-14
-    64-30[USC vs. Miami] --> 32-15
-    64-31[Auburn vs. Jax. State] --> 32-15
-    32-0[Gonzaga vs. Memphis] --> 16-0
-    32-1[Connecticut vs. Arkansas] --> 16-0
-    32-2[RUTG/ND vs. Texas Tech] --> 16-1
-    32-3[Davidson vs. Duke] --> 16-1
-    32-4[Norfolk St. vs. Marquette] --> 16-2
-    32-5[WYO/IND vs. UCLA] --> 16-2
-    32-6[Va. Tech vs. Yale] --> 16-3
-    32-7[Murray St. vs. Kentucky] --> 16-3
-    32-8[WRST/BRY vs. Seton Hall] --> 16-4
-    32-9[Houston vs. Illinois] --> 16-4
-    32-10[Michigan vs. Tennessee] --> 16-5
-    32-11[Loyola Chicago vs. Villanova] --> 16-5
-    32-12[Kansas vs. Creighton] --> 16-6
-    32-13[Iowa vs. S. Dakota St.] --> 16-6
-    32-14[Iowa St. vs. Wisconsin] --> 16-7
-    32-15[USC vs. Auburn] --> 16-7
-    16-0[Memphis vs. Connecticut] --> 8-0
-    16-1[RUTG/ND vs. Duke] --> 8-0
-    16-2[Marquette vs. UCLA] --> 8-1
-    16-3[Va. Tech vs. Murray St.] --> 8-1
-    16-4[Seton Hall vs. Houston] --> 8-2
-    16-5[Tennessee vs. Villanova] --> 8-2
-    16-6[Kansas vs. Iowa] --> 8-3
-    16-7[Iowa St. vs. Auburn] --> 8-3
-    8-0[Connecticut vs. RUTG/ND] --> 4-0
-    8-1[Marquette vs. Va. Tech] --> 4-0
-    8-2[Houston vs. Tennessee] --> 4-1
-    8-3[Kansas vs. Iowa St.] --> 4-1
-    4-0[Connecticut vs. Marquette] --> 2-0
-    4-1[Houston vs. Iowa St.] --> 2-0
-    2-0[Marquette vs. Iowa St.] --> 1-0
-    1-0[Marquette]
 ```
 
 ## Encoding
