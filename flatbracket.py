@@ -1,6 +1,7 @@
 import base64
 import os
 import argparse
+from random import SystemRandom
 
 
 # 64 team bracket encodes to 12 characters
@@ -19,9 +20,16 @@ def random():
     return bracket_data[:7] + bytes([last_byte])
 
 
-BRACKETS = {
-    "RANDOM": random(),
-}
+rand = SystemRandom()
+
+SEEDS = [1, 16, 8, 9, 5, 12, 4, 13, 6, 11, 3, 14, 7, 10, 2, 15]
+
+
+def random_result(first_index: int, second_index: int):
+    first_seed = SEEDS[first_index % 16]
+    second_seed = SEEDS[second_index % 16]
+    seed_quotient = second_seed / (first_seed + second_seed)
+    return int(rand.random() > seed_quotient)
 
 
 def iter_results(bracket_data: bytes):
@@ -93,7 +101,13 @@ def main():
         "bracket",
         type=str,
         nargs="?",
-        help=f"encoded bracket or named bracket {list(BRACKETS)}",
+        help="encoded bracket",
+    )
+    parser.add_argument(
+        "-r",
+        "--random",
+        action="store_true",
+        help="create random bracket",
     )
     args = parser.parse_args()
 
@@ -104,12 +118,7 @@ def main():
 
     if bracket:
         print(f"Bracket: {bracket}")
-        try:
-            bracket_data = BRACKETS[bracket]
-        except KeyError:
-            bracket_data = decode(bracket)
-        else:
-            print(encode(bracket_data))
+        bracket_data = decode(bracket)
         print()
 
         diagram = draw(generate_matchups(bracket_data, len(teams)), teams)
@@ -119,14 +128,19 @@ def main():
         high, low = next(coro)
         bracket_data = None
         while bracket_data is None:
-            result = None
-            while result is None:
-                result_str = input(f"{teams[high]} vs. {teams[low]}\n[0/1]: ").strip()
-                if result_str not in ("0", "1"):
-                    continue
-                result = int(result_str)
+            print(f"{teams[high]} vs. {teams[low]}")
+            if args.random:
+                result = random_result(high, low)
+                print(result)
+            else:
+                result = None
+                while result is None:
+                    result_str = input("[0/1]: ").strip()
+                    if result_str not in ("0", "1"):
+                        continue
+                    result = int(result_str)
             try:
-                high, low = coro.send(int(result))
+                high, low = coro.send(result)
             except StopIteration as exc:
                 bracket_data = exc.value
         print()
