@@ -26,9 +26,12 @@ def _generate_seeds(number_of_teams: int) -> list[int]:
     result = [
         previous[0],
         n_teams_and_one - previous[0],
-        previous[1],
-        n_teams_and_one - previous[1],
     ]
+    if len(previous) > 1:  # allow for non-power of two teams
+        result.extend([
+            previous[1],
+            n_teams_and_one - previous[1],
+        ])
     for i in range(2, len(previous), 2):
         first, second = previous[i + 1], previous[i]
         result.extend(
@@ -54,16 +57,23 @@ def iter_results(bracket_data: bytes):
             yield (byte >> i) & 1
 
 
-def intialize_matchups(number_of_teams: int) -> list:
+def _batched(iterable, n):
+    for item in batched(iterable, n):
+        # stop early on incomplete batches
+        if len(item) != n:
+            break
+        yield item
+
+def initialize_matchups(number_of_teams: int) -> list:
     """Initialize matchups for the first round."""
-    return list(batched(range(number_of_teams), 2))
+    return list(_batched(range(number_of_teams), 2))
 
 
 def generate_matchups(
     bracket_data: bytes, number_of_teams: int
 ) -> Iterable[tuple[int, int]]:
     """Generate all matchups based on bracket results."""
-    matchups = intialize_matchups(number_of_teams)
+    matchups = initialize_matchups(number_of_teams)
     prev_winner = winner = 0
 
     yield from matchups
@@ -141,10 +151,10 @@ def main():
     else:
         # Create mode: build bracket interactively or randomly
         number_of_teams = len(teams)
-        assert _is_power_of_two(number_of_teams), "Number of teams must be a power of 2"
-        assert _is_power_of_two(args.regions), "Number of regions must be a power of 2"
+        # assert _is_power_of_two(number_of_teams), "Number of teams must be a power of 2"
+        # assert _is_power_of_two(args.regions), "Number of regions must be a power of 2"
         seeds = _generate_seeds(max(number_of_teams // args.regions, 1))
-        matchups = intialize_matchups(number_of_teams)
+        matchups = initialize_matchups(number_of_teams)
         results = []
         prev_winner = 0
 
