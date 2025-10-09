@@ -12,7 +12,7 @@ def encode(bracket_data: bytes) -> str:
 
 
 def decode(bracket: str) -> bytes:
-    return base64.urlsafe_b64decode(bracket + "===")
+    return base64.urlsafe_b64decode(bracket + "==")
 
 
 rand = SystemRandom()
