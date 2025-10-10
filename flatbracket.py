@@ -64,29 +64,22 @@ def iter_results(bracket_data: bytes):
             yield (byte >> i) & 1
 
 
-def _batched(iterable, n):
-    for item in batched(iterable, n):
-        # stop early on incomplete batches
-        if len(item) != n:
-            break
-        yield item
-
-
 def initialize_matchups(number_of_teams: int) -> list:
     """Initialize matchups for the first round."""
-    return list(_batched(range(number_of_teams), 2))
+    # Remove incomplete pairs
+    return [pair for pair in batched(range(number_of_teams), 2) if len(pair) == 2]
 
 
-def generate_matchups(results, number_of_teams: int) -> Iterable[tuple[int, int]]:
+def generate_matchups(
+    results: Iterable[bool | int], number_of_teams: int
+) -> Iterable[tuple[int, int]]:
     """Generate all matchups based on bracket results."""
     matchups = initialize_matchups(number_of_teams)
-
     yield from matchups
 
     results_iter = iter(results)
     matchup_index = 0
     prev_winner = winner = 0
-
     while matchup_index < len(matchups):
         matchup = matchups[matchup_index]
         result = next(results_iter, None)
@@ -95,7 +88,8 @@ def generate_matchups(results, number_of_teams: int) -> Iterable[tuple[int, int]
             return
         winner = matchup[result]
 
-        if matchup_index % 2:  # After every second game, create next round matchup
+        # After every second game, create next round matchup
+        if matchup_index % 2:
             next_matchup = (prev_winner, winner)
             matchups.append(next_matchup)
             yield next_matchup
@@ -123,6 +117,7 @@ def _draw(matchups: list, teams: list):
     for above, below in matchups:
         next_round_size = round_size // 2
         round_id = f"{round_size}-{game_num}"
+
         if next_round_size:
             next_round_id = f"{next_round_size}-{game_num // 2}"
             yield f"    {round_id}[{teams[above]} vs. {teams[below]}] --> {next_round_id}"
@@ -138,10 +133,6 @@ def _draw(matchups: list, teams: list):
 def draw(matchups, teams: list) -> str:
     """Generate mermaid flowchart diagram for bracket."""
     return "\n".join(_draw(matchups, teams))
-
-
-def _is_power_of_two(n: int) -> bool:
-    return n > 0 and (n & (n - 1)) == 0
 
 
 def main():
@@ -175,14 +166,13 @@ def main():
 
         matchup_index = 0
         prev_winner = 0
-
         results = []
 
         while matchup_index < len(matchups):
             above, below = matchups[matchup_index]
-            print(
-                f"{teams[above]} ({seeds[above % len(seeds)]}) vs. {teams[below]} ({seeds[below % len(seeds)]})"
-            )
+            above_seed = seeds[above % len(seeds)]
+            below_seed = seeds[below % len(seeds)]
+            print(f"{teams[above]} ({above_seed}) vs. {teams[below]} ({below_seed})")
 
             if args.random:
                 result = random_result(above, below, seeds)
