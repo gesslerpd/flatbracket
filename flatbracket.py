@@ -14,7 +14,7 @@ def decode(bracket: str) -> bytes:
     return base64.urlsafe_b64decode(bracket + "==")
 
 
-rand = SystemRandom()
+RNG = SystemRandom()
 
 
 def _generate_seeds(number_of_teams: int) -> list[int]:
@@ -28,26 +28,33 @@ def _generate_seeds(number_of_teams: int) -> list[int]:
         n_teams_and_one - previous[0],
     ]
     if len(previous) > 1:  # allow for non-power of two teams
-        result.extend([
-            previous[1],
-            n_teams_and_one - previous[1],
-        ])
+        result.extend(
+            (
+                previous[1],
+                n_teams_and_one - previous[1],
+            )
+        )
     for i in range(2, len(previous), 2):
         first, second = previous[i + 1], previous[i]
         result.extend(
-            [first, n_teams_and_one - first, second, n_teams_and_one - second]
+            (
+                first,
+                n_teams_and_one - first,
+                second,
+                n_teams_and_one - second,
+            )
         )
 
     return result
 
 
-def random_result(above_index: int, below_index: int, seeds: list[int]) -> int:
+def random_result(above_index: int, below_index: int, seeds: list[int]) -> bool:
     """Generate random result weighted by seed."""
     n_seeds = len(seeds)
     first_seed = seeds[above_index % n_seeds]
     second_seed = seeds[below_index % n_seeds]
     probability = second_seed / (first_seed + second_seed)
-    return int(rand.random() > probability)
+    return RNG.random() > probability
 
 
 def iter_results(bracket_data: bytes):
@@ -64,34 +71,44 @@ def _batched(iterable, n):
             break
         yield item
 
+
 def initialize_matchups(number_of_teams: int) -> list:
     """Initialize matchups for the first round."""
     return list(_batched(range(number_of_teams), 2))
 
 
-def generate_matchups(
-    bracket_data: bytes, number_of_teams: int
-) -> Iterable[tuple[int, int]]:
+def generate_matchups(results, number_of_teams: int) -> Iterable[tuple[int, int]]:
     """Generate all matchups based on bracket results."""
     matchups = initialize_matchups(number_of_teams)
-    prev_winner = winner = 0
 
     yield from matchups
 
-    for i, (result, matchup) in enumerate(zip(iter_results(bracket_data), matchups)):
+    results_iter = iter(results)
+    matchup_index = 0
+    prev_winner = winner = 0
+
+    while matchup_index < len(matchups):
+        matchup = matchups[matchup_index]
+        result = next(results_iter, None)
+        if result is None:
+            # no more results, stop iteration
+            return
         winner = matchup[result]
-        if i % 2:  # After every second game, create next round matchup
+
+        if matchup_index % 2:  # After every second game, create next round matchup
             next_matchup = (prev_winner, winner)
             matchups.append(next_matchup)
             yield next_matchup
+
         prev_winner = winner
+        matchup_index += 1
 
     yield (winner, winner)  # chicken dinner
 
 
-def create_bracket(results: Iterable[int]) -> bytes:
+def create_bracket(results: Iterable[int | bool]) -> bytes:
     return bytes(
-        sum(bit << i for i, bit in enumerate(byte_results) if bit)
+        sum(1 << i for i, bit in enumerate(byte_results) if bit)
         for byte_results in batched(results, 8)
     )
 
@@ -146,7 +163,7 @@ def main():
         # View mode: decode and display bracket
         print(f"Bracket: {args.bracket}\n")
         bracket_data = decode(args.bracket)
-        diagram = draw(generate_matchups(bracket_data, len(teams)), teams)
+        diagram = draw(generate_matchups(iter_results(bracket_data), len(teams)), teams)
         print(diagram)
     else:
         # Create mode: build bracket interactively or randomly
@@ -155,10 +172,14 @@ def main():
         # assert _is_power_of_two(args.regions), "Number of regions must be a power of 2"
         seeds = _generate_seeds(max(number_of_teams // args.regions, 1))
         matchups = initialize_matchups(number_of_teams)
-        results = []
+
+        matchup_index = 0
         prev_winner = 0
 
-        for i, (above, below) in enumerate(matchups):
+        results = []
+
+        while matchup_index < len(matchups):
+            above, below = matchups[matchup_index]
             print(
                 f"{teams[above]} ({seeds[above % len(seeds)]}) vs. {teams[below]} ({seeds[below % len(seeds)]})"
             )
@@ -170,17 +191,18 @@ def main():
                 while True:
                     result_str = input("[1/2]: ").strip()
                     if result_str in ("1", "2"):
-                        result = int(result_str) - 1
+                        result = result_str == "2"
                         break
 
             results.append(result)
             winner = below if result else above
 
             # Create next round matchup after every second game
-            if i % 2:
+            if matchup_index % 2:
                 matchups.append((prev_winner, winner))
 
             prev_winner = winner
+            matchup_index += 1
 
         bracket_data = create_bracket(results)
         print(f"\nWinner: {teams[prev_winner]}")
