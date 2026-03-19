@@ -176,7 +176,7 @@ def main():
 
             if args.random:
                 result = random_result(above, below, seeds)
-                print("[1/2]: ", result + 1)
+                print("[1/2]: ", 2 if result else 1)
             else:
                 while True:
                     result_str = input("[1/2]: ").strip()

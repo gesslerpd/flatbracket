@@ -1,0 +1,13 @@
+[project]
+name = "flatbracket"
+version = "0.0.0"
+description = "Small shareable encoding for single-elimination tournament brackets"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+    "ruff>=0.15.6",
+]
